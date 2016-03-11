@@ -1,5 +1,6 @@
 #include <type_traits>
 #include <tuple>
+#include <functional>
 #include "POD_tuple.hpp"
 
 struct Arg {};
@@ -56,6 +57,15 @@ public:
 	auto observe() const {
 		return POD_get<static_cast<int>(Name)>(extra_params);
 	}
+
+	template<Enum Name>
+	std::function<bool (Arg*)> K1() const {
+		return [&](Arg*){
+			//does some row scan made possible by its arguments,
+			//and aggregates them here.
+			return observe<Name>();
+		};
+	}
 	
 	template<Enum Name, typename Ret, typename... Args>
 	ObserversDemo(Observer<Enum,Name,Ret> obs, Args... args)
@@ -77,5 +87,6 @@ int main(){
 		observify(FooNames::Bop,[](Arg*) -> int{return 7;})
 		);
 	test.updateLoop();
-	return test.template observe<FooNames::Bar>();
+	assert(test. K1<FooNames::Baz>()(nullptr));
+	return test.observe<FooNames::Bar>();
 }
